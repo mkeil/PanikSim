@@ -1,3 +1,4 @@
+// foo
 /* self-driven / panic / main file for demo version
    MainSwitch options:
    0 simple demo --> output on X11
