@@ -156,7 +156,7 @@ constants for the 'psychological' potential
 	------
 
 # i 0 RndSeed	123493		
-# i 1 MaxUpdNum	20000	maximum number of updates to be computed
+# i 1 MaxUpdNum	30000	maximum number of updates to be computed
 # i 0 AyS	200000	
 
 	AyS = array size

@@ -19,7 +19,7 @@ include_directories("src")
 
 set (CUDA_NVCC_FLAGS "-arch=sm_20")
 	
-cuda_add_executable(PanicSim src/sd.cu) 
+cuda_add_executable(PanicSim src/sd.cu src/prepareParameter.cu) 
 target_link_libraries(PanicSim ${X11_LIBRARIES})
 target_link_libraries(PanicSim ${GLOG_LIBRARY})
 target_link_libraries(PanicSim ${GTEST_LIBRARIES})

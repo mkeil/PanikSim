@@ -126,366 +126,366 @@ long int IFModTime;
 
 /********************* Funktionen *****************/
 
-void WallParticleRelation(int iw, int i, float *r, int *can_see)
-{
+// void WallParticleRelation(int iw, int i, float *r, int *can_see)
+// {
     // can_see: whether partice i is within the range of wall iw;  r: distance
 
 
-    switch(iw) {
-    case 0: {
-            *r = Y[i];
-            break;
-        }
-    case 1: {
-            *r = WP[0].x-X[i];
-            break;
-        }
-    case 2: {
-            *r = Y[i]-WP[0].y;
-            break;
-        }
-    case 3: {
-            *r = X[i]-WP[1].x;
-            break;
-        }
-    case 4: {
-            *r = RoomYSize-Y[i];
-            break;
-        }
-    case 5: {
-            *r = X[i]-WP[2].x;
-            break;
-        }
-    case 6: {
-            *r = WP[2].y-Y[i];
-            break;
-        }
-    case 7: {
-            *r = WP[3].x-X[i];
-            break;
-        }
-    case 8: {
-            *r = X[i];
-            break;
-        }
-    }
+    // switch(iw) {
+    // case 0: {
+            // *r = Y[i];
+            // break;
+        // }
+    // case 1: {
+            // *r = WP[0].x-X[i];
+            // break;
+        // }
+    // case 2: {
+            // *r = Y[i]-WP[0].y;
+            // break;
+        // }
+    // case 3: {
+            // *r = X[i]-WP[1].x;
+            // break;
+        // }
+    // case 4: {
+            // *r = RoomYSize-Y[i];
+            // break;
+        // }
+    // case 5: {
+            // *r = X[i]-WP[2].x;
+            // break;
+        // }
+    // case 6: {
+            // *r = WP[2].y-Y[i];
+            // break;
+        // }
+    // case 7: {
+            // *r = WP[3].x-X[i];
+            // break;
+        // }
+    // case 8: {
+            // *r = X[i];
+            // break;
+        // }
+    // }
 
 
-    switch(iw) {
-    case 0: {
-            if(Y[i]<=R) {
-                *can_see=1;
-            } else {
-                *can_see=0;
-            }
-            break;
-        }
-    case 1: {
-            if((X[i]>=WP[0].x-R)&&(X[i]<=WP[0].x)&&(Y[i]<=WP[0].y)) {
-                *can_see=1;
-            } else {
-                *can_see=0;
-            }
-            break;
-        }
-    case 2: {
-            if((X[i]>=WP[0].x)&&(X[i]<=WP[1].x)&&(Y[i]<=WP[0].y+R)) {
-                *can_see=1;
-            } else {
-                *can_see=0;
-            }
-            break;
-        }
-    case 3: {
-            if((X[i]>=WP[1].x)&&(X[i]<=WP[1].x+R)&&(Y[i]<=WP[1].y)) {
-                *can_see=1;
-            } else {
-                *can_see=0;
-            }
-            break;
-        }
-    case 4: {
-            if(Y[i]>=RoomYSize-R) {
-                *can_see=1;
-            } else {
-                *can_see=0;
-            }
-            break;
-        }
-    case 5: {
-            if((X[i]>=WP[2].x)&&(X[i]<=WP[2].x+R)&&(Y[i]>=WP[2].y)) {
-                *can_see=1;
-            } else {
-                *can_see=0;
-            }
-            break;
-        }
-    case 6: {
-            if((X[i]>=WP[3].x)&&(X[i]<=WP[2].x)&&(Y[i]>=WP[2].y-R)) {
-                *can_see=1;
-            } else {
-                *can_see=0;
-            }
-            break;
-        }
-    case 7: {
-            if((X[i]<=WP[3].x)&&(X[i]>=WP[3].x-R)&&(Y[i]>=WP[3].y)) {
-                *can_see=1;
-            } else {
-                *can_see=0;
-            }
-            break;
-        }
-    case 8: {
-            if(X[i]<=R) {
-                *can_see=1;
-            } else {
-                *can_see=0;
-            }
-            break;
-        }
-    }
-}
-
+    // switch(iw) {
+    // case 0: {
+            // if(Y[i]<=R) {
+                // *can_see=1;
+            // } else {
+                // *can_see=0;
+            // }
+            // break;
+        // }
+    // case 1: {
+            // if((X[i]>=WP[0].x-R)&&(X[i]<=WP[0].x)&&(Y[i]<=WP[0].y)) {
+                // *can_see=1;
+            // } else {
+                // *can_see=0;
+            // }
+            // break;
+        // }
+    // case 2: {
+            // if((X[i]>=WP[0].x)&&(X[i]<=WP[1].x)&&(Y[i]<=WP[0].y+R)) {
+                // *can_see=1;
+            // } else {
+                // *can_see=0;
+            // }
+            // break;
+        // }
+    // case 3: {
+            // if((X[i]>=WP[1].x)&&(X[i]<=WP[1].x+R)&&(Y[i]<=WP[1].y)) {
+                // *can_see=1;
+            // } else {
+                // *can_see=0;
+            // }
+            // break;
+        // }
+    // case 4: {
+            // if(Y[i]>=RoomYSize-R) {
+                // *can_see=1;
+            // } else {
+                // *can_see=0;
+            // }
+            // break;
+        // }
+    // case 5: {
+            // if((X[i]>=WP[2].x)&&(X[i]<=WP[2].x+R)&&(Y[i]>=WP[2].y)) {
+                // *can_see=1;
+            // } else {
+                // *can_see=0;
+            // }
+            // break;
+        // }
+    // case 6: {
+            // if((X[i]>=WP[3].x)&&(X[i]<=WP[2].x)&&(Y[i]>=WP[2].y-R)) {
+                // *can_see=1;
+            // } else {
+                // *can_see=0;
+            // }
+            // break;
+        // }
+    // case 7: {
+            // if((X[i]<=WP[3].x)&&(X[i]>=WP[3].x-R)&&(Y[i]>=WP[3].y)) {
+                // *can_see=1;
+            // } else {
+                // *can_see=0;
+            // }
+            // break;
+        // }
+    // case 8: {
+            // if(X[i]<=R) {
+                // *can_see=1;
+            // } else {
+                // *can_see=0;
+            // }
+            // break;
+        // }
+    // }
+// }
 /*------------------------------*/
 
-void WallPsychForce(int iw, int i, float r, float *fx, float *fy)
-{
+// void WallPsychForce(int iw, int i, float r, float *fx, float *fy)
+// {
 
-#define tmp_f (A*exp(-(r-0.5*D[i])/B))
+// #define tmp_f (A*exp(-(r-0.5*D[i])/B))
 
-    switch(iw) {
-    case 0: {
-            *fx = 0.0;
-            *fy = tmp_f;
-            break;
-        }
-    case 1: {
-            *fx = - tmp_f;
-            *fy = 0.0;
-            break;
-        }
-    case 2: {
-            *fx = 0.0;
-            *fy = tmp_f;
-            break;
-        }
-    case 3: {
-            *fx = tmp_f;
-            *fy = 0.0;
-            break;
-        }
-    case 4: {
-            *fx = 0.0;
-            *fy = - tmp_f;
-            break;
-        }
-    case 5: {
-            *fx = tmp_f;
-            *fy = 0.0;
-            break;
-        }
-    case 6: {
-            *fx = 0.0;
-            *fy = - tmp_f;
-            break;
-        }
-    case 7: {
-            *fx = - tmp_f;
-            *fy = 0.0;
-            break;
-        }
-    case 8: {
-            *fx = tmp_f;
-            *fy = 0.0;
-            break;
-        }
-    }
+    // switch(iw) {
+    // case 0: {
+            // *fx = 0.0;
+            // *fy = tmp_f;
+            // break;
+        // }
+    // case 1: {
+            // *fx = - tmp_f;
+            // *fy = 0.0;
+            // break;
+        // }
+    // case 2: {
+            // *fx = 0.0;
+            // *fy = tmp_f;
+            // break;
+        // }
+    // case 3: {
+            // *fx = tmp_f;
+            // *fy = 0.0;
+            // break;
+        // }
+    // case 4: {
+            // *fx = 0.0;
+            // *fy = - tmp_f;
+            // break;
+        // }
+    // case 5: {
+            // *fx = tmp_f;
+            // *fy = 0.0;
+            // break;
+        // }
+    // case 6: {
+            // *fx = 0.0;
+            // *fy = - tmp_f;
+            // break;
+        // }
+    // case 7: {
+            // *fx = - tmp_f;
+            // *fy = 0.0;
+            // break;
+        // }
+    // case 8: {
+            // *fx = tmp_f;
+            // *fy = 0.0;
+            // break;
+        // }
+    // }
 
-#undef tmp_f
-}
+// #undef tmp_f
+// }
 
-/*------------------------------*/
+// /*------------------------------*/
 
-void WallYoungForce(int iw, int i, float r, float *fx, float *fy)
-{
+// void WallYoungForce(int iw, int i, float r, float *fx, float *fy)
+// {
 
-#define tmp_f (2.0*C_Young*(0.5*D[i]-r))
+// #define tmp_f (2.0*C_Young*(0.5*D[i]-r))
 
-    switch(iw) {
-    case 0: {
-            *fx = 0.0;
-            *fy = tmp_f;
-            break;
-        }
-    case 1: {
-            *fx = - tmp_f;
-            *fy = 0.0;
-            break;
-        }
-    case 2: {
-            *fx = 0.0;
-            *fy = tmp_f;
-            break;
-        }
-    case 3: {
-            *fx = tmp_f;
-            *fy = 0.0;
-            break;
-        }
-    case 4: {
-            *fx = 0.0;
-            *fy = - tmp_f;
-            break;
-        }
-    case 5: {
-            *fx = tmp_f;
-            *fy = 0.0;
-            break;
-        }
-    case 6: {
-            *fx = 0.0;
-            *fy = - tmp_f;
-            break;
-        }
-    case 7: {
-            *fx = - tmp_f;
-            *fy = 0.0;
-            break;
-        }
-    case 8: {
-            *fx = tmp_f;
-            *fy = 0.0;
-            break;
-        }
-    }
+    // switch(iw) {
+    // case 0: {
+            // *fx = 0.0;
+            // *fy = tmp_f;
+            // break;
+        // }
+    // case 1: {
+            // *fx = - tmp_f;
+            // *fy = 0.0;
+            // break;
+        // }
+    // case 2: {
+            // *fx = 0.0;
+            // *fy = tmp_f;
+            // break;
+        // }
+    // case 3: {
+            // *fx = tmp_f;
+            // *fy = 0.0;
+            // break;
+        // }
+    // case 4: {
+            // *fx = 0.0;
+            // *fy = - tmp_f;
+            // break;
+        // }
+    // case 5: {
+            // *fx = tmp_f;
+            // *fy = 0.0;
+            // break;
+        // }
+    // case 6: {
+            // *fx = 0.0;
+            // *fy = - tmp_f;
+            // break;
+        // }
+    // case 7: {
+            // *fx = - tmp_f;
+            // *fy = 0.0;
+            // break;
+        // }
+    // case 8: {
+            // *fx = tmp_f;
+            // *fy = 0.0;
+            // break;
+        // }
+    // }
 
-#undef tmp_f
-}
+// #undef tmp_f
+// }
 
 
-/*------------------------------*/
+// /*------------------------------*/
 
-void WallTangForce_FS1( int iw, int i, float r, float *fx, float *fy )
-{
+// void WallTangForce_FS1( int iw, int i, float r, float *fx, float *fy )
+// {
 
-#define tmp_delta_r (0.5*D[i]-r)
+// #define tmp_delta_r (0.5*D[i]-r)
 
-    /* friction forces */
-    switch(iw) {
-    case 0:
-    case 2:
-    case 4:
-    case 6: {
-            *fx = -Kappa*tmp_delta_r*VX[i];
-            *fy = 0.0;
-            break;
-        }
-    case 1:
-    case 3:
-    case 5:
-    case 7:
-    case 8: {
-            *fx = 0.0;
-            *fy = -Kappa*tmp_delta_r*VY[i];
-            break;
-        }
-    }
+    // /* friction forces */
+    // switch(iw) {
+    // case 0:
+    // case 2:
+    // case 4:
+    // case 6: {
+            // *fx = -Kappa*tmp_delta_r*VX[i];
+            // *fy = 0.0;
+            // break;
+        // }
+    // case 1:
+    // case 3:
+    // case 5:
+    // case 7:
+    // case 8: {
+            // *fx = 0.0;
+            // *fy = -Kappa*tmp_delta_r*VY[i];
+            // break;
+        // }
+    // }
 
-#undef tmp_delta_r
-}
+// #undef tmp_delta_r
+// }
+
 
 /*------------------------------------*/
 
-void WPointParticleRelation(int iwp, int i, float *r, int *can_see)
-{
-    /* can_see: whether partice i is within the range of wpoint iwp
-       r: distance */
+// void WPointParticleRelation(int iwp, int i, float *r, int *can_see)
+// {
+    // /* can_see: whether partice i is within the range of wpoint iwp
+       // r: distance */
 
-    *r = sqrt(SQR(WP[iwp].x-X[i])+SQR(WP[iwp].y-Y[i]));
+    // *r = sqrt(SQR(WP[iwp].x-X[i])+SQR(WP[iwp].y-Y[i]));
 
-    switch(iwp) {
-    case 0: {
-            if((X[i]<=WP[0].x)&&(Y[i]>=WP[0].y)) {
-                *can_see=1;
-            } else {
-                *can_see=0;
-            }
-            break;
-        }
-    case 1: {
-            if((X[i]>=WP[1].x)&&(Y[i]>=WP[1].y)) {
-                *can_see=1;
-            } else {
-                *can_see=0;
-            }
-            break;
-        }
-    case 2: {
-            if((X[i]>=WP[2].x)&&(Y[i]<=WP[2].y)) {
-                *can_see=1;
-            } else {
-                *can_see=0;
-            }
-            break;
-        }
-    case 3: {
-            if((X[i]<=WP[3].x)&&(Y[i]<=WP[3].y)) {
-                *can_see=1;
-            } else {
-                *can_see=0;
-            }
-            break;
-        }
-    }
-}
+    // switch(iwp) {
+    // case 0: {
+            // if((X[i]<=WP[0].x)&&(Y[i]>=WP[0].y)) {
+                // *can_see=1;
+            // } else {
+                // *can_see=0;
+            // }
+            // break;
+        // }
+    // case 1: {
+            // if((X[i]>=WP[1].x)&&(Y[i]>=WP[1].y)) {
+                // *can_see=1;
+            // } else {
+                // *can_see=0;
+            // }
+            // break;
+        // }
+    // case 2: {
+            // if((X[i]>=WP[2].x)&&(Y[i]<=WP[2].y)) {
+                // *can_see=1;
+            // } else {
+                // *can_see=0;
+            // }
+            // break;
+        // }
+    // case 3: {
+            // if((X[i]<=WP[3].x)&&(Y[i]<=WP[3].y)) {
+                // *can_see=1;
+            // } else {
+                // *can_see=0;
+            // }
+            // break;
+        // }
+    // }
+// }
 
-/*------------------------------*/
+// /*------------------------------*/
 
-void WPointPsychForce(int iwp, int i, float r, float *fx, float *fy)
-{
-    /* exerted by wpoint iwp on particle i */
+// void WPointPsychForce(int iwp, int i, float r, float *fx, float *fy)
+// {
+    // /* exerted by wpoint iwp on particle i */
 
-#define tmp_f_over_r (A*exp(-(r-0.5*D[i])/B)/r)
+// #define tmp_f_over_r (A*exp(-(r-0.5*D[i])/B)/r)
 
-    *fx = (X[i]-WP[iwp].x) * tmp_f_over_r;
-    *fy = (Y[i]-WP[iwp].y) * tmp_f_over_r;
+    // *fx = (X[i]-WP[iwp].x) * tmp_f_over_r;
+    // *fy = (Y[i]-WP[iwp].y) * tmp_f_over_r;
 
-#undef tmp_f_over_r
-}
+// #undef tmp_f_over_r
+// }
 
-/*------------------------------*/
+// /*------------------------------*/
 
-void WPointYoungForce(int iwp, int i, float r, float *fx, float *fy)
-{
-    /* exerted by wpoint iwp on particle i */
+// void WPointYoungForce(int iwp, int i, float r, float *fx, float *fy)
+// {
+    // /* exerted by wpoint iwp on particle i */
 
-    float rx,ry;
+    // float rx,ry;
 
-#define tmp_f_over_r ( 2.0*C_Young*(0.5*D[i]-r) / r)
+// #define tmp_f_over_r ( 2.0*C_Young*(0.5*D[i]-r) / r)
 
-    rx=WP[iwp].x-X[i];
-    ry=WP[iwp].y-Y[i];
-    *fx = - rx * tmp_f_over_r;
-    *fy = - ry * tmp_f_over_r;
+    // rx=WP[iwp].x-X[i];
+    // ry=WP[iwp].y-Y[i];
+    // *fx = - rx * tmp_f_over_r;
+    // *fy = - ry * tmp_f_over_r;
 
-#undef tmp_f_over_r
-}
+// #undef tmp_f_over_r
+// }
 
-/*------------------------------*/
+// /*------------------------------*/
 
-void WPointTangForce_FS1(int iwp, int i, float r, float *fx, float *fy)
-{
-    /* exerted by wpoint iwp on particle i */
+// void WPointTangForce_FS1(int iwp, int i, float r, float *fx, float *fy)
+// {
+    // /* exerted by wpoint iwp on particle i */
 
-    float rx,ry,scal_prod_over_rsqr;
+    // float rx,ry,scal_prod_over_rsqr;
 
-    rx = X[i]-WP[iwp].x;
-    ry = Y[i]-WP[iwp].y;
-    scal_prod_over_rsqr = (ry*VX[i] - rx*VY[i]) / SQR(r);
-    *fx = -Kappa * (0.5*D[i]-r) * (   ry * scal_prod_over_rsqr );
-    *fy = -Kappa * (0.5*D[i]-r) * ( - rx * scal_prod_over_rsqr );
-}
+    // rx = X[i]-WP[iwp].x;
+    // ry = Y[i]-WP[iwp].y;
+    // scal_prod_over_rsqr = (ry*VX[i] - rx*VY[i]) / SQR(r);
+    // *fx = -Kappa * (0.5*D[i]-r) * (   ry * scal_prod_over_rsqr );
+    // *fy = -Kappa * (0.5*D[i]-r) * ( - rx * scal_prod_over_rsqr );
+// }
 
 /*------------------------------*/
 
@@ -1449,17 +1449,3 @@ void Shutdown_Demo() {}
 
 /*------------------------------*/
 
-void ReInit()
-{
-    /* if parameter file has changed, re-read  */
-
-    stat(IFN, &IFStatBuf);
-    if( IFStatBuf.st_mtime != IFModTime ) {
-        IFModTime = IFStatBuf.st_mtime;
-        readpar ( "re", IFN, IPar, IParName, IParNum,
-                  FPar, FParName, FParNum,
-                  SPar, SParName, SParNum );
-    }
-}
-
-/*========================================*/

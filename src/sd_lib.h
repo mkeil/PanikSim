@@ -1,11 +1,6 @@
-void WallParticleRelation(int iw, int i, float *tr, int *can_see);
-void WallPsychForce(int iw, int i, float r, float *fx, float *fy);
-void WallYoungForce(int iw, int i, float r, float *fx, float *fy);
-void WallTangForce_FS1(int iw, int i, float r, float *fx, float *fy);
-void WPointParticleRelation(int iwp, int i, float *r, int *can_see);
-void WPointPsychForce(int iwp, int i, float r, float *fx, float *fy);
-void WPointYoungForce(int iwp, int i, float r, float *fx, float *fy);
-void WPointTangForce_FS1(int iwp, int i, float r, float *fx, float *fy);
+#pragma once
+
+
 void PP_PsychForce(int i1, int i2, float r, float *fx, float *fy);
 void PP_YoungForce(int i1, int i2, float r, float *fx, float *fy);
 void PP_TangForce_FS1(int i1, int i2, float r, float *fx, float *fy);
