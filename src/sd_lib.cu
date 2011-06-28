@@ -694,8 +694,7 @@ void RemoveParticle( int *n, int i )
 
 void EulTStep( float *tstep, float f )
 {
-    /* adjusts the time step in a way that the force (fx,fy) doesn't
-       change the velocity of particle i by more than V_ChangeLimit */
+    /* adjusts the time step in a way that the force (fx,fy) doesn't change the velocity of particle i by more than V_ChangeLimit */
 
     while( f*(*tstep) >= V_ChangeLimit ) {
         *tstep *= C_NS;
