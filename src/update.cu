@@ -4,10 +4,12 @@
 #include <stdio.h>
 
 #include "types.h"
-#include "update.h"
-#include "prepareParameter.h"
 #include "kernels.h"
 #include "deviceFunc.h"
+#include "update.h"
+#include "prepareParameter.h"
+
+
 
 
 void Upd(parameter para_h)
@@ -180,8 +182,7 @@ void Upd(parameter para_h)
 	
 	
 	error = cudaMemcpy(WP_d, WP, NWP * sizeof(wpoint), cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	
-	
+		
 	error = cudaMemcpy(para_d, &para_h, sizeof(parameter), cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
     	
 	LOG (INFO) << "Alle Werte wurden hochkopiert";
@@ -190,8 +191,8 @@ void Upd(parameter para_h)
 	dim3 dimBlock(32); 
 	dim3 dimGrid((para_h.N0 + dimBlock.x - 1) / dimBlock.x);
 	
-	LOG(WARNING) << "Block dimensions: " << dimBlock.x << " " << dimBlock.y << " " << dimBlock.z;
-	LOG(WARNING) << "Grid dimensions: " << dimGrid.x << " " << dimGrid.y << " " << dimGrid.z;
+	// LOG(WARNING) << "Block dimensions: " << dimBlock.x << " " << dimBlock.y << " " << dimBlock.z;
+	// LOG(WARNING) << "Grid dimensions: " << dimGrid.x << " " << dimGrid.y << " " << dimGrid.z;
 	
 	calcWallForces<<<dimGrid, dimBlock>>> (fwallx_d, fwally_d, ftmagsum_d, D_d, Injured_d, X_d, Y_d, WP_d, VX_d, VY_d, para_d, N, NW); 
 	cudaThreadSynchronize();
@@ -201,8 +202,6 @@ void Upd(parameter para_h)
 	
 	
 	// ftmagsum wird im nächsten Kernel nochmal verwendet, darum erst danach zurück
-	
-	
 	
 	calcWPointForces <<<dimGrid, dimBlock>>> (fwpointx_d, fwpointy_d, ftmagsum_d, D_d, Injured_d, X_d, Y_d, WP_d, VX_d, VY_d, para_d, N, NWP);
 	cudaThreadSynchronize();
@@ -390,40 +389,39 @@ void Upd(parameter para_h)
 	error = cudaMemcpy(ftmagsum_d, ftmagsum, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
 	
 	calcColumnForces <<<dimGrid, dimBlock>>> (fcolx_d, fcoly_d, ftmagsum_d, D_d, Injured_d, X_d, Y_d, VX_d, VY_d, para_d, N); 
-	CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	error = cudaGetLastError();
+	
+	CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error); error = cudaGetLastError();
 	// printf ("Ergebniss von calcColumnForces: %s \n", cudaGetErrorString(error));
 	cudaThreadSynchronize();
 	
 	// berechnete Werte calcColumnForces zurück
 	error = cudaMemcpy(fcolx, fcolx_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
 	error = cudaMemcpy(fcoly, fcoly_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error); 
-	error = cudaMemcpy(ftmagsum, ftmagsum_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error); 
+	
 	
 	
 	
 	// benötigte Werte für calcInjuryForces hochkopieren 
 	
-	// error = cudaMemcpy(V0of_d, V0of, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	// error = cudaMemcpy(SimTime_d, SimTime, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	// error = cudaMemcpy(Phi_d, Phi, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	error = cudaMemcpy(V0of_d, V0of, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	error = cudaMemcpy(SimTime_d, SimTime, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	error = cudaMemcpy(Phi_d, Phi, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
 	
 	
 	
-	// calcInjuryForces <<<dimGrid, dimBlock>>> (fsmokex_d, fsmokey_d, VX_d, VY_d, V0of_d, Injured_d,ftmagsum_d, N, UpdNum, SimTime_d, Phi_d, X_d, D_d, para_d);
-	// cudaThreadSynchronize ();
+	calcInjuryForces <<<dimGrid, dimBlock>>> (fsmokex_d, fsmokey_d, VX_d, VY_d, V0of_d, Injured_d,ftmagsum_d, N, UpdNum, SimTime_d, Phi_d, X_d, D_d, para_d);
+	cudaThreadSynchronize ();
 	
 	
 	// berechnete Werte calcInjuryForces zurück
 	
-	
-	// error = cudaMemcpy(fsmokex, fsmokex_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	// error = cudaMemcpy(fsmokey, fsmokey_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	// error = cudaMemcpy(VX, VX_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	// error = cudaMemcpy(VY, VY_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	// error = cudaMemcpy(V0of, V0of_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	// error = cudaMemcpy(Injured, Injured_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	
+	error = cudaMemcpy(fsmokex, fsmokex_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	error = cudaMemcpy(fsmokey, fsmokey_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	error = cudaMemcpy(VX, VX_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	error = cudaMemcpy(VY, VY_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	error = cudaMemcpy(V0of, V0of_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	error = cudaMemcpy(Injured, Injured_d, N * sizeof(int), cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	error = cudaMemcpy(ftmagsum, ftmagsum_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error); 
 	
 	
 	
@@ -504,56 +502,56 @@ void Upd(parameter para_h)
     /* 1.5 */
     /* injuries */
 
-    switch(InjurySwitch) {
-    case 0: {
-            break;
-        }
-    case 1: {
+    // switch(InjurySwitch) {
+    // case 0: {
+            // break;
+        // }
+    // case 1: {
 
-            /* case: people crushed */
-            for(i=0; i<N; i++) {
+            // /* case: people crushed */
+            // for(i=0; i<N; i++) {
 
-                /* newly injured */
-                if((ftmagsum[i]>FCrush_over_1m*PI*D[i])&&(Injured[i]==0)) {
-                    Injured[i] = 1;
-                    NInjured++;
-                    V0of[i] = 0.0;
-                }
-            }
-            break;
-        }
-    case 2:
-    case 3: {
+                // /* newly injured */
+                // if((ftmagsum[i]>FCrush_over_1m*PI*D[i])&&(Injured[i]==0)) {
+                    // Injured[i] = 1;
+                    // NInjured++;
+                    // V0of[i] = 0.0;
+                // }
+            // }
+            // break;
+        // }
+    // case 2:
+    // case 3: {
 
-            /* case: smoke front */
-            if(SimTime[UpdNum]>=SmokeStartTime) {
-                x_smokefront = (SimTime[UpdNum]-SmokeStartTime)*VSmoke;
+            // /* case: smoke front */
+            // if(SimTime[UpdNum]>=SmokeStartTime) {
+                // x_smokefront = (SimTime[UpdNum]-SmokeStartTime)*VSmoke;
 
-                for(i=0; i<N; i++) {
-                    /* checking position compared to smoke front */
-                    tmpr = X[i] - x_smokefront;
+                // for(i=0; i<N; i++) {
+                    // /* checking position compared to smoke front */
+                    // tmpr = X[i] - x_smokefront;
 
-                    /* center of particle behind smoke front: injured */
-                    if( tmpr < 0.5*D[i] ) {
-                        if(Injured[i]==0) {
-                            Injured[i] = 1;
-                            NInjured++;
-                            V0of[i] = 0.0;
-                            VX[i] = VY[i] = 0.0;
-                        }
-                    }
-                    /* ahead of front but within its interaction range:
-                    trying to escape */
-                    if( (tmpr>=0.5*D[i])&&(tmpr<=R) ) {
-                        tmpf = A_fire*exp(-(tmpr-0.5*D[i])/B_fire);
-                        fsmokex[i] += cos(Phi[i])*tmpf;
-                        fsmokey[i] += sin(Phi[i])*tmpf;
-                    }
-                }
-            }
-            break;
-        }
-    }
+                    // /* center of particle behind smoke front: injured */
+                    // if( tmpr < 0.5*D[i] ) {
+                        // if(Injured[i]==0) {
+                            // Injured[i] = 1;
+                            // NInjured++;
+                            // V0of[i] = 0.0;
+                            // VX[i] = VY[i] = 0.0;
+                        // }
+                    // }
+                    // /* ahead of front but within its interaction range:
+                    // trying to escape */
+                    // if( (tmpr>=0.5*D[i])&&(tmpr<=R) ) {
+                        // tmpf = A_fire*exp(-(tmpr-0.5*D[i])/B_fire);
+                        // fsmokex[i] += cos(Phi[i])*tmpf;
+                        // fsmokey[i] += sin(Phi[i])*tmpf;
+                    // }
+                // }
+            // }
+            // break;
+        // }
+    // }
 
 
 

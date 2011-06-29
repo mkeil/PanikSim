@@ -1,3 +1,5 @@
+#pragma once
+#include "types.h"
 
 __global__ void calcWallForces (float *fwallx, float *fwally, float *ftmagsum, float *D, int *Injured, float *X, float *Y, wpoint *WP, float *VX, float *VY, parameter *para, int N, int Nw);
 	

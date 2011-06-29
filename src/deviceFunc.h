@@ -1,16 +1,18 @@
 
-void __device__ WallParticleRelation(int iw, int i, float *r, int *can_see, float yCoor, float xCoor, wpoint *WP, parameter *para); 
+__device__ void WallParticleRelation(int iw, int i, float *r, int *can_see, float yCoor, float xCoor, wpoint *WP, parameter *para); 
 
-void __device__ WallTangForce_FS1( int iw, int i, float r, float *fx, float *fy, float diameter, float VelocityX_Dir, float VelocityY_Dir, parameter *para ); 
+__device__ void WallTangForce_FS1( int iw, int i, float r, float *fx, float *fy, float diameter, float VelocityX_Dir, float VelocityY_Dir, parameter *para ); 
 
-void __device__ WallPsychForce(int iw, int i, float r, float *fx, float *fy, float diameter, parameter *para); 
+__device__ void WallPsychForce(int iw, int i, float r, float *fx, float *fy, float diameter, parameter *para); 
 
-void __device__ WallYoungForce(int iw, int i, float r, float *fx, float *fy, float diameter, parameter *para); 
+__device__ void WallYoungForce(int iw, int i, float r, float *fx, float *fy, float diameter, parameter *para); 
 
-void __device__ WPointYoungForce(int iwp, int i, float r, float *fx, float *fy, float xCoor, float yCoor, float diameter, wpoint WP, parameter *para ); 
+__device__ void WPointYoungForce(int iwp, int i, float r, float *fx, float *fy, float xCoor, float yCoor, float diameter, wpoint WP, parameter *para ); 
 
-void __device__ WPointPsychForce(int iwp, int i, float r, float *fx, float *fy, float xCoor, float yCoor, float diameter, wpoint WP, parameter *para );
+__device__ void WPointPsychForce(int iwp, int i, float r, float *fx, float *fy, float xCoor, float yCoor, float diameter, wpoint WP, parameter *para );
 
-void __device__ WPointParticleRelation(int iwp, int i, float *r, int *can_see, float yCoor, float xCoor, wpoint *WP); 
+__device__ void WPointParticleRelation(int iwp, int i, float *r, int *can_see, float yCoor, float xCoor, wpoint *WP); 
 
-void __device__ WPointTangForce_FS1(int iwp, int i, float r, float *fx, float *fy, float xCoor, float yCoor, float diameter, float VelocityX_Dir, float VelocityY_Dir, wpoint WP, parameter *para ); 
+__device__ void WPointTangForce_FS1(int iwp, int i, float r, float *fx, float *fy, float xCoor, float yCoor, float diameter, float VelocityX_Dir, float VelocityY_Dir, wpoint WP, parameter *para ); 
+
+__device__ float DirectionOfExit(float xCoor, float yCoor, float diameter, float YS, parameter *para, wall *W); 

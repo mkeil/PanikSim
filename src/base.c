@@ -39,3 +39,4 @@
 #ifndef _O
 #define _O(s) {fprintf(stdout,"%s",s);fflush(stdout);}
 #endif
+

@@ -1,6 +1,8 @@
 #include "deviceFunc.h"
+#include "base.c"
 
-void __device__ WallParticleRelation(int iw, int i, float *r, int *can_see, float yCoor, float xCoor, wpoint *WP, parameter *para)
+
+__device__ void WallParticleRelation(int iw, int i, float *r, int *can_see, float yCoor, float xCoor, wpoint *WP, parameter *para)
 {
     // can_see: whether partice i is within the range of wall iw;  r: distance
 	
@@ -126,7 +128,7 @@ void __device__ WallParticleRelation(int iw, int i, float *r, int *can_see, floa
 
 
 
-void __device__ WallTangForce_FS1( int iw, int i, float r, float *fx, float *fy, float diameter, float VelocityX_Dir, float VelocityY_Dir, parameter *para )
+__device__ void WallTangForce_FS1( int iw, int i, float r, float *fx, float *fy, float diameter, float VelocityX_Dir, float VelocityY_Dir, parameter *para )
 {
 float Kappa = para-> Kappa;
 #define tmp_delta_r (0.5*diameter-r)
@@ -155,7 +157,7 @@ float Kappa = para-> Kappa;
 #undef tmp_delta_r
 }
 
-void __device__ WallPsychForce(int iw, int i, float r, float *fx, float *fy, float diameter, parameter *para)
+__device__ void WallPsychForce(int iw, int i, float r, float *fx, float *fy, float diameter, parameter *para)
 {
 	float A = para-> A;
 	float B = para -> B;
@@ -212,7 +214,7 @@ void __device__ WallPsychForce(int iw, int i, float r, float *fx, float *fy, flo
 #undef tmp_f
 }
 
-void __device__ WallYoungForce(int iw, int i, float r, float *fx, float *fy, float diameter, parameter *para)
+__device__ void WallYoungForce(int iw, int i, float r, float *fx, float *fy, float diameter, parameter *para)
 {
 
 float C_Young = para-> C_Young;
@@ -269,7 +271,7 @@ float C_Young = para-> C_Young;
 #undef tmp_f
 }
 
-void __device__ WPointYoungForce(int iwp, int i, float r, float *fx, float *fy, float xCoor, float yCoor, float diameter, wpoint WP, parameter *para )
+__device__ void WPointYoungForce(int iwp, int i, float r, float *fx, float *fy, float xCoor, float yCoor, float diameter, wpoint WP, parameter *para )
 
 {
     /* exerted by wpoint iwp on particle i */
@@ -286,7 +288,7 @@ void __device__ WPointYoungForce(int iwp, int i, float r, float *fx, float *fy, 
 #undef tmp_f_over_r
 }
 
-void __device__ WPointPsychForce(int iwp, int i, float r, float *fx, float *fy, float xCoor, float yCoor, float diameter, wpoint WP, parameter *para )
+__device__ void WPointPsychForce(int iwp, int i, float r, float *fx, float *fy, float xCoor, float yCoor, float diameter, wpoint WP, parameter *para )
 
 {
     /* exerted by wpoint iwp on particle i */
@@ -301,7 +303,7 @@ void __device__ WPointPsychForce(int iwp, int i, float r, float *fx, float *fy, 
 }
 
 
-void __device__ WPointParticleRelation(int iwp, int i, float *r, int *can_see, float yCoor, float xCoor, wpoint *WP)
+__device__ void WPointParticleRelation(int iwp, int i, float *r, int *can_see, float yCoor, float xCoor, wpoint *WP)
 {
     /* can_see: whether partice i is within the range of wpoint iwp r: distance */
 	
@@ -343,7 +345,7 @@ void __device__ WPointParticleRelation(int iwp, int i, float *r, int *can_see, f
     }
 }
 
-void __device__ WPointTangForce_FS1(int iwp, int i, float r, float *fx, float *fy, float xCoor, float yCoor, float diameter, float VelocityX_Dir, float VelocityY_Dir, wpoint WP, parameter *para )
+__device__ void WPointTangForce_FS1(int iwp, int i, float r, float *fx, float *fy, float xCoor, float yCoor, float diameter, float VelocityX_Dir, float VelocityY_Dir, wpoint WP, parameter *para )
 
 {
 	/* exerted by wpoint iwp on particle i */
@@ -355,4 +357,71 @@ void __device__ WPointTangForce_FS1(int iwp, int i, float r, float *fx, float *f
     scal_prod_over_rsqr = (ry*VelocityX_Dir - rx*VelocityY_Dir) / SQR(r);
     *fx = -Kappa * (0.5*diameter-r) * (   ry * scal_prod_over_rsqr );
     *fy = -Kappa * (0.5*diameter-r) * ( - rx * scal_prod_over_rsqr );
+}
+
+__device__ float DirectionOfExit(float xCoor, float yCoor, float diameter, float YS, parameter *para, wall *W) {
+
+
+			
+	float DoorWidth = para-> DoorWidth;
+	float RoomXSize = para -> RoomXSize;
+	float EPSILON = 1.0e-5;
+
+
+    /* direction of exit for particle i */
+
+    float dsqr, /* sqr of particle center - door-post distance */
+          rsqr; /* sqr of particle's radius */
+
+
+    /* behind the upper door-post */
+    if((yCoor<=0.5*YS-0.5*DoorWidth+0.5*diameter+EPSILON)&&(xCoor<=RoomXSize)) {
+
+        dsqr = SQR(W[1].x2-xCoor) + SQR(W[1].y2-yCoor);
+        rsqr = SQR(0.5*diameter)+EPSILON;
+        if(dsqr<=rsqr) {
+            /* very close to the door-post */
+            if(yCoor<=0.5*YS-0.5*DoorWidth) {
+                return( 0.5*PI );
+            } else {
+                return(   0.5*PI
+                          + atan2( W[1].y2-yCoor,W[1].x2-xCoor )
+                      );
+            }
+        } else {
+            /* well apart from the door-post */
+            return(   atan2( 1.0, sqrt(dsqr/rsqr-1.0) )
+                      + atan2( W[1].y2-yCoor,W[1].x2-xCoor )
+                  );
+        }
+    }
+
+
+    /* behind the lower door-post */
+    else if((yCoor>=0.5*YS+0.5*DoorWidth-0.5*diameter-EPSILON)&&(xCoor<=RoomXSize)) {
+
+        dsqr = SQR(W[6].x2-xCoor) + SQR(W[6].y2-yCoor);
+        rsqr = SQR(0.5*diameter)+EPSILON;
+        if(dsqr<=rsqr) {
+            /* very close to the door-post */
+            if(yCoor>=0.5*YS+0.5*DoorWidth) {
+                return( -0.5*PI );
+            } else {
+                return( - 0.5*PI
+                        + atan2( W[6].y2-yCoor,W[6].x2-xCoor )
+                      );
+            }
+        } else {
+            /* well apart from the door-post */
+            return( - atan2( 1.0, sqrt(dsqr/rsqr-1.0) )
+                    + atan2( W[6].y2-yCoor,W[6].x2-xCoor )
+                  );
+        }
+    }
+
+
+    /* in the center or outside */
+    else {
+        return 0.0;
+    }
 }

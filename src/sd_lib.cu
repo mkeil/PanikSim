@@ -20,6 +20,7 @@ char *OF2N_DEFAULT = "sd.dat2";
 #include "base.c"
 #include "readpar.c"
 #include "Xlibext.c"
+#include "types.h"
 
 
 
@@ -31,15 +32,7 @@ char *ParticleColorName[]= {"yellow", "grey"};
 char *SmokeColorName="grey";
 
 
-/* number of walls and wpoints */
-#define NW 9
-#define NWP 4
-typedef struct wall {
-    float x1, y1, x2, y2;
-} wall;
-typedef struct wpoint {
-    float x, y;
-} wpoint;
+
 
 
 /********* global parameters -- to be read from parameter file **********/

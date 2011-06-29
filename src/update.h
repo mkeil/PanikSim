@@ -1,4 +1,7 @@
 #pragma once
+#include "types.h"
+
+
 
 void Upd(parameter para_h);
 

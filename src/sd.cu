@@ -1,6 +1,8 @@
 #include "sd_lib.cu"
 #include "update.cu"
 
+
+
 int main( int NArg, char * ArgStr[] )
 {
 	google::InitGoogleLogging(ArgStr[0]);

@@ -1,4 +1,8 @@
 #include "kernels.h"
+#include "deviceFunc.cu"
+#include "base.c"
+#include <stdio.h>
+
 /* wall force */
 __global__ void calcWallForces (float *fwallx, float *fwally, float *ftmagsum, float *D, int *Injured, float *X, float *Y, wpoint *WP, float *VX, float *VY, parameter *para, int N, int Nw) {
 	
@@ -237,15 +241,14 @@ __global__ void calcInjuryForces (float *fsmokex, float *fsmokey, float *VX, flo
 		case 1: {
 
 				/* case: people crushed */
-				// for(i=0; i<N; i++) {
-
-					// frisch verletzt
-					if((ftmagsum[i]>FCrush_over_1m*PI*D[i])&&(Injured[i]==0)) {
-						Injured[i] = 1;
-						// NInjured++; wird anschließend neu berechnet
-						V0of[i] = 0.0;
-					}
-				// }
+			
+				// frisch verletzt
+				if((ftmagsum[i]>FCrush_over_1m*PI*D[i])&&(Injured[i]==0)) {
+					Injured[i] = 1;
+					// NInjured++; wird anschließend neu berechnet
+					V0of[i] = 0.0;
+				}
+				
 				break;
 			}
 		case 2:
@@ -255,27 +258,29 @@ __global__ void calcInjuryForces (float *fsmokex, float *fsmokey, float *VX, flo
 				if(SimTime[UpdNum]>=SmokeStartTime) {
 					x_smokefront = (SimTime[UpdNum]-SmokeStartTime)*VSmoke;
 
-					//for(i=0; i<N; i++) {
-						/* checking position compared to smoke front */
-						tmpr = X[i] - x_smokefront;
+					
+					/* checking position compared to smoke front */
+					tmpr = X[i] - x_smokefront;
 
-						/* center of particle behind smoke front: injured */
-						if( tmpr < 0.5*D[i] ) {
-							if(Injured[i]==0) {
-								Injured[i] = 1;
-								// NInjured++; wird anschließend neu berechnet
-								V0of[i] = 0.0;
-								VX[i] = VY[i] = 0.0;
-							}
+					/* center of particle behind smoke front: injured */
+					
+					printf("Index: %d verletzt: %d \n", i, Injured[i]);
+					if( tmpr < 0.5*D[i] ) {
+						if(Injured[i]==0) {
+							Injured[i] = 1;
+							
+							V0of[i] = 0.0;
+							VX[i] = VY[i] = 0.0;
 						}
-						/* ahead of front but within its interaction range:
-						trying to escape */
-						if( (tmpr>=0.5*D[i])&&(tmpr<=R) ) {
-							tmpf = A_fire*exp(-(tmpr-0.5*D[i])/B_fire);
-							fsmokex[i] += cos(Phi[i])*tmpf;
-							fsmokey[i] += sin(Phi[i])*tmpf;
-						}
-					// }
+					}
+					/* ahead of front but within its interaction range:
+					trying to escape */
+					if( (tmpr>=0.5*D[i])&&(tmpr<=R) ) {
+						tmpf = A_fire*exp(-(tmpr-0.5*D[i])/B_fire);
+						fsmokex[i] += cos(Phi[i])*tmpf;
+						fsmokey[i] += sin(Phi[i])*tmpf;
+					}
+					
 				}
 				break;
 			}
@@ -314,4 +319,18 @@ __global__ void sumUp (const int *summanden, const int countElements, int* sum) 
 		summe = summe + summanden[i];
 	}
 	*sum = summe;
+}
+
+__global__ void storeNewVelocity (float *VX, float *VY, float *V, float *Vdir,  float *Phi, const float *X, const float *Y, const float *D, wall *W,  const float *vxnew, const float *vynew, parameter *para, const int N, float YS) {
+
+	int b_ID = blockIdx.x; 		   
+	int i =  b_ID * blockDim.x + threadIdx.x;
+    
+	if (i <= N) {
+        VX[i] = vxnew[i];
+        VY[i] = vynew[i];
+        V[i] = sqrt(SQR(VX[i])+SQR(VY[i]));
+        Vdir[i] = atan2(VY[i],VX[i]);
+        Phi[i] = DirectionOfExit(X[i], Y[i], D[i], YS, para, W);
+    }
 }
