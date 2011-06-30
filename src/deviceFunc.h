@@ -15,4 +15,6 @@ __device__ void WPointParticleRelation(int iwp, int i, float *r, int *can_see, f
 
 __device__ void WPointTangForce_FS1(int iwp, int i, float r, float *fx, float *fy, float xCoor, float yCoor, float diameter, float VelocityX_Dir, float VelocityY_Dir, wpoint WP, parameter *para ); 
 
+__device__ float EulTStep(float tmpTimeStep, float f, float V_ChangeLimit, float C_NS );
+
 __device__ float DirectionOfExit(float xCoor, float yCoor, float diameter, float YS, parameter *para, wall *W); 

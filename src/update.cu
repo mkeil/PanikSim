@@ -9,7 +9,20 @@
 #include "update.h"
 #include "prepareParameter.h"
 
-
+float findMinTimeStep (const float *tStepVector, const int countElements) {
+	float erg = 10.0;
+	int i;
+	// printf ("FindMinTimeStep gestartet! Anzahl: %d \n", countElements);
+	
+	for (i = 0; i < countElements; i++) {
+		// printf ("index: %d, curent timeStep: %f, minTime: %f \n", i,tStepVector[i], erg);
+		if (tStepVector[i] < erg) {
+			erg = tStepVector[i];
+		}
+	}
+	// printf ("FindMinTimeStep fertig! Ergebnis: %f \n", erg);
+	return erg; 
+}
 
 
 void Upd(parameter para_h)
@@ -22,13 +35,17 @@ void Upd(parameter para_h)
           tmprsqr,sqrt_fact,ksi,eta,vnew,*ftmagsum,*fsmokex,*fsmokey,
           x_smokefront, tmpf, f_over_r, rx, ry, scal_prod_over_rsqr, 
 		  *fcolx,*fcoly;
+	float *tStepVector;
 
 
 
+	LOG(WARNING) << "updatenr :" << UpdNum;
+	
     /* 0 */
     allocN=N;
     fwallx=vector(0,allocN-1);
     fwally=vector(0,allocN-1);
+	tStepVector=vector(0,allocN-1);
     
 	fwpointx=vector(0,allocN-1);
     fwpointy=vector(0,allocN-1);
@@ -53,7 +70,8 @@ void Upd(parameter para_h)
 	
 	
 	
-	float *Xprev_d, *Yprev_d, *X_d, *Y_d, *VX_d, *VY_d, *fwallx_d, *fwally_d,*fwpointx_d, *fwpointy_d, *ftmagsum_d, *D_d, *fcolx_d, *fcoly_d, *fsmokex_d, *fsmokey_d, *V0of_d, *SimTime_d, *Phi_d;
+	float *Xprev_d, *Yprev_d, *X_d, *Y_d, *VX_d, *VY_d, *fwallx_d, *fwally_d,*fwpointx_d, *fwpointy_d, *ftmagsum_d, *D_d, *fcolx_d, *fcoly_d, *fsmokex_d, *fsmokey_d, *V0of_d, *SimTime_d, *Phi_d, *fsumx_d, *fsumy_d, *tStepVector_d, *fpairx_d, *fpairy_d, *timeStep_d, *vxnew_d, *vynew_d;
+	
 	int *Injured_d;
 	int *NInjured_d; 
 	
@@ -74,6 +92,18 @@ void Upd(parameter para_h)
 	error = cudaMalloc (&WP_d,NWP * sizeof(wpoint)); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
 	error = cudaMalloc (&para_d,sizeof(parameter)); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
 	
+	error = cudaMalloc (&tStepVector_d,sizeFloatVector); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	error = cudaMalloc (&fsumy_d,sizeFloatVector); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	error = cudaMalloc (&fsumx_d,sizeFloatVector); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	
+	
+	error = cudaMalloc (&vxnew_d,sizeFloatVector); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	error = cudaMalloc (&vynew_d,sizeFloatVector); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+
+	error = cudaMalloc (&timeStep_d,sizeFloatVector); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	
+	error = cudaMalloc (&fpairx_d,sizeFloatVector); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	error = cudaMalloc (&fpairy_d,sizeFloatVector); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
 	
 	error = cudaMalloc (&fwpointx_d,sizeFloatVector); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
 	error = cudaMalloc (&fwpointy_d,sizeFloatVector); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
@@ -138,6 +168,9 @@ void Upd(parameter para_h)
 	// temporäre Kraftvektoren auf dem Device mit 0 initialsieren
 	
 	
+	error = cudaMemset(fpairy_d, 0, sizeFloatVector); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	error = cudaMemset(fpairx_d, 0, sizeFloatVector); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	
 	error = cudaMemset(fwallx_d, 0, sizeFloatVector); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
 	error = cudaMemset(fwally_d, 0, sizeFloatVector); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
 	
@@ -153,18 +186,10 @@ void Upd(parameter para_h)
 	
 	error = cudaMemset(ftmagsum_d, 0, sizeFloatVector); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
 	
-	// error = cudaMemcpy(fwallx_d, fwallx, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	// error = cudaMemcpy(fwally_d, fwally, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
 	
 	
-	// error = cudaMemcpy(fcolx_d, fcolx, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	// error = cudaMemcpy(fcoly_d, fcoly, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	
-	// error = cudaMemcpy(fwpointx_d, fwpointx, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	// error = cudaMemcpy(fwpointy_d, fwpointy, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	
-	// error = cudaMemcpy(ftmagsum_d, ftmagsum, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	
+	error = cudaMemset(fsumx_d, 0, sizeFloatVector); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	error = cudaMemset(fsumy_d, 0, sizeFloatVector); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
 	LOG (INFO) << "device kraftvektoren initialisiert";
 	
 	
@@ -197,8 +222,8 @@ void Upd(parameter para_h)
 	calcWallForces<<<dimGrid, dimBlock>>> (fwallx_d, fwally_d, ftmagsum_d, D_d, Injured_d, X_d, Y_d, WP_d, VX_d, VY_d, para_d, N, NW); 
 	cudaThreadSynchronize();
 	// berechnete Werte calcWallForces zurück
-	error = cudaMemcpy(fwallx, fwallx_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	error = cudaMemcpy(fwally, fwally_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	// error = cudaMemcpy(fwallx, fwallx_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	// error = cudaMemcpy(fwally, fwally_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
 	
 	
 	// ftmagsum wird im nächsten Kernel nochmal verwendet, darum erst danach zurück
@@ -206,8 +231,9 @@ void Upd(parameter para_h)
 	calcWPointForces <<<dimGrid, dimBlock>>> (fwpointx_d, fwpointy_d, ftmagsum_d, D_d, Injured_d, X_d, Y_d, WP_d, VX_d, VY_d, para_d, N, NWP);
 	cudaThreadSynchronize();
 	// berechnete Werte calcWPointForces zurück
-	error = cudaMemcpy(fwpointx, fwpointx_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	error = cudaMemcpy(fwpointy, fwpointy_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	// error = cudaMemcpy(fwpointx, fwpointx_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	// error = cudaMemcpy(fwpointy, fwpointy_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	
 	error = cudaMemcpy(ftmagsum, ftmagsum_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
 
 
@@ -384,6 +410,7 @@ void Upd(parameter para_h)
             }
         }
     }
+	
 	// benötigte Werte für calcColumnForces hochkopieren
 	
 	error = cudaMemcpy(ftmagsum_d, ftmagsum, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
@@ -395,8 +422,8 @@ void Upd(parameter para_h)
 	cudaThreadSynchronize();
 	
 	// berechnete Werte calcColumnForces zurück
-	error = cudaMemcpy(fcolx, fcolx_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	error = cudaMemcpy(fcoly, fcoly_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error); 
+	// error = cudaMemcpy(fcolx, fcolx_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	// error = cudaMemcpy(fcoly, fcoly_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error); 
 	
 	
 	
@@ -404,31 +431,32 @@ void Upd(parameter para_h)
 	// benötigte Werte für calcInjuryForces hochkopieren 
 	
 	error = cudaMemcpy(V0of_d, V0of, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	error = cudaMemcpy(SimTime_d, SimTime, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
 	error = cudaMemcpy(Phi_d, Phi, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
 	
 	
 	
-	calcInjuryForces <<<dimGrid, dimBlock>>> (fsmokex_d, fsmokey_d, VX_d, VY_d, V0of_d, Injured_d,ftmagsum_d, N, UpdNum, SimTime_d, Phi_d, X_d, D_d, para_d);
+	calcInjuryForces <<<dimGrid, dimBlock>>> (fsmokex_d, fsmokey_d, VX_d, VY_d, V0of_d, Injured_d,ftmagsum_d, N, SimTime[UpdNum], Phi_d, X_d, D_d, para_d);
 	cudaThreadSynchronize ();
 	
 	
 	// berechnete Werte calcInjuryForces zurück
 	
-	error = cudaMemcpy(fsmokex, fsmokex_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	error = cudaMemcpy(fsmokey, fsmokey_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	error = cudaMemcpy(VX, VX_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	error = cudaMemcpy(VY, VY_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	error = cudaMemcpy(V0of, V0of_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	// error = cudaMemcpy(fsmokex, fsmokex_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	// error = cudaMemcpy(fsmokey, fsmokey_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	// error = cudaMemcpy(VX, VX_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	// error = cudaMemcpy(VY, VY_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	// error = cudaMemcpy(V0of, V0of_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
 	error = cudaMemcpy(Injured, Injured_d, N * sizeof(int), cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
 	error = cudaMemcpy(ftmagsum, ftmagsum_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error); 
 	
 	
 	
 	// Anzahl der Verletzten neu bestimmen
-	// sumUp<<<1,1>>> (Injured_d,N, NInjured_d); cudaThreadSynchronize(); error = cudaGetLastError ();  printf ("Ergebniss sumUp : %s \n",cudaGetErrorString(error));
+	sumUp<<<1,1>>> (Injured_d,N, NInjured_d); cudaThreadSynchronize(); 
+	error = cudaGetLastError ();  
+	LOG(WARNING) << "Ergebniss sumUp :" << cudaGetErrorString(error);
 	
-	// error = cudaMemcpy(&NInjured, NInjured_d, sizeof(int), cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	error = cudaMemcpy(&NInjured, NInjured_d, sizeof(int), cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
 	
     /* 1.4
      * column
@@ -553,78 +581,116 @@ void Upd(parameter para_h)
         // }
     // }
 
+	// benötigte Werte für SumForces hoch
+	
+	
+	error = cudaMemcpy(fpairx_d, fpairx, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+    error = cudaMemcpy(fpairy_d, fpairy, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+
+	sqrt_fact = sqrt(tstep/DefaultDeltaT);
+
+	
+	sumForces<<<dimGrid, dimBlock >>> (fsumx_d, fsumy_d, tStepVector_d, sqrt_fact, VX_d, VY_d, V0of_d, Phi_d, fpairx_d, fwallx_d, fwpointx_d, fpairy_d, fwally_d, fwpointy_d, fsmokex_d, fsmokey_d, fcolx_d, fcoly_d,N, para_d);
+ 
+	cudaThreadSynchronize(); 
+	
+	error = cudaGetLastError (); 
+	LOG(WARNING) << "Ergebniss sumForces :" << cudaGetErrorString(error);
+	
+	// neuen TimeStep finden (Kernel variante)
+	
+		getMinTimeStep <<<1,1>>> (tStepVector_d,N, timeStep_d); 
+		
+		cudaThreadSynchronize(); 
+		error = cudaGetLastError (); 
+		LOG(WARNING) << "Ergebniss getMinTimeStep :" << cudaGetErrorString(error);
+	
+		error = cudaMemcpy(&tstep, timeStep_d, sizeof(float), cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+		LOG(WARNING) << "newTimeStep :" << tstep;
+	
+	// neuen TimeStep finden Host Variante 
+		// error = cudaMemcpy(tStepVector, tStepVector_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);	
+		// tstep = findMinTimeStep (tStepVector, N); 
+		// LOG(WARNING) << "newTimeStep :" << tstep;
+	
+	NewVelocity <<<dimGrid, dimBlock >>> (vxnew_d,  vynew_d,   fsumx_d,   fsumy_d,   VX_d,   VY_d,   Injured_d, N, tStepVector_d , para_d);
+	cudaThreadSynchronize(); 
+	
+	error = cudaGetLastError ();  
+	LOG(WARNING) << "Ergebniss NewVelocity :" << cudaGetErrorString(error);
+	
+	
+	
+    // /* 2 */
+
+    // /* 2.1 preparing update of the eq. of motion */
+
+    // sqrt_fact = sqrt(tstep/DefaultDeltaT);
+    // for(i=0; i<N; i++) {
+
+        // /* self-propelling */
+        // fspx[i] = 1/Tau * (V0of[i]*cos(Phi[i]) - VX[i]);
+        // fspy[i] = 1/Tau * (V0of[i]*sin(Phi[i]) - VY[i]);
+
+        // /* noise */
+        // if(GaTh!=0.0) {
+            // ksi = GaussRand(GaMe, GaTh, GaCM);
+            // eta = 2.0*PI * rand() / (RAND_MAX+1.0);
+        // } else {
+            // ksi=0.0;
+            // eta=0.0;
+        // }
 
 
-    /* 2 */
-
-    /* 2.1 preparing update of the eq. of motion */
-
-    sqrt_fact = sqrt(tstep/DefaultDeltaT);
-    for(i=0; i<N; i++) {
-
-        /* self-propelling */
-        fspx[i] = 1/Tau * (V0of[i]*cos(Phi[i]) - VX[i]);
-        fspy[i] = 1/Tau * (V0of[i]*sin(Phi[i]) - VY[i]);
-
-        /* noise */
-        if(GaTh!=0.0) {
-            ksi = GaussRand(GaMe, GaTh, GaCM);
-            eta = 2.0*PI * rand() / (RAND_MAX+1.0);
-        } else {
-            ksi=0.0;
-            eta=0.0;
-        }
+        // /* sum of forces */
+        // fsumx[i] =   fspx[i] + fpairx[i] + fwallx[i] + fwpointx[i]
+                     // + sqrt_fact * ksi * cos(eta);
+        // fsumy[i] =   fspy[i] + fpairy[i] + fwally[i] + fwpointy[i]
+                     // + sqrt_fact * ksi * sin(eta);
 
 
-        /* sum of forces */
-        fsumx[i] =   fspx[i] + fpairx[i] + fwallx[i] + fwpointx[i]
-                     + sqrt_fact * ksi * cos(eta);
-        fsumy[i] =   fspy[i] + fpairy[i] + fwally[i] + fwpointy[i]
-                     + sqrt_fact * ksi * sin(eta);
+        // /* adding smoke force */
+        // if((InjurySwitch==2)||(InjurySwitch==3)) {
+            // fsumx[i] += fsmokex[i];
+            // fsumy[i] += fsmokey[i];
+        // }
+        // /* adding force of column */
+        // switch(ColumnSwitch) {
+        // default:
+        // case 0: {
+                // break;
+            // }
+        // case 1: {
+                // fsumx[i] += fcolx[i];
+                // fsumy[i] += fcoly[i];
+                // break;
+            // }
+        // }
 
 
-        /* adding smoke force */
-        if((InjurySwitch==2)||(InjurySwitch==3)) {
-            fsumx[i] += fsmokex[i];
-            fsumy[i] += fsmokey[i];
-        }
-        /* adding force of column */
-        switch(ColumnSwitch) {
-        default:
-        case 0: {
-                break;
-            }
-        case 1: {
-                fsumx[i] += fcolx[i];
-                fsumy[i] += fcoly[i];
-                break;
-            }
-        }
+        // /* time step adjustment for velocity change */
+        // EulTStep( &tstep, sqrt(SQR(fsumx[i])+SQR(fsumy[i])) );
 
 
-        /* time step adjustment for velocity change */
-        EulTStep( &tstep, sqrt(SQR(fsumx[i])+SQR(fsumy[i])) );
+        // /* new velocity */
+        // if(  (Injured[i]==1)
+                // &&((InjurySwitch==1)||(InjurySwitch==3))
+          // ) {
+            // vxnew[i] = 0.0;
+            // vynew[i] = 0.0;
+        // } else {
+            // vxnew[i] = VX[i] + fsumx[i] * tstep;
+            // vynew[i] = VY[i] + fsumy[i] * tstep;
+        // }
 
 
-        /* new velocity */
-        if(  (Injured[i]==1)
-                &&((InjurySwitch==1)||(InjurySwitch==3))
-          ) {
-            vxnew[i] = 0.0;
-            vynew[i] = 0.0;
-        } else {
-            vxnew[i] = VX[i] + fsumx[i] * tstep;
-            vynew[i] = VY[i] + fsumy[i] * tstep;
-        }
-
-
-        /* checking new velocity */
-        vnew = sqrt( SQR(vxnew[i]) + SQR(vynew[i]) );
-        if(vnew > Vmax) {
-            vxnew[i] = vxnew[i]/vnew * Vmax;
-            vynew[i] = vynew[i]/vnew * Vmax;
-        }
-    }
+        // /* checking new velocity */
+        // vnew = sqrt( SQR(vxnew[i]) + SQR(vynew[i]) );
+        // if(vnew > Vmax) {
+            // vxnew[i] = vxnew[i]/vnew * Vmax;
+            // vynew[i] = vynew[i]/vnew * Vmax;
+        // }
+    // }
 
 
 
@@ -634,15 +700,9 @@ void Upd(parameter para_h)
 
     // alte Werte hochkopieren
     error = cudaMemcpy(X_d, X, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-
-    error = cudaMemcpy(Y_d, Y, sizeFloatVector, cudaMemcpyHostToDevice);
-    CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-
-    error = cudaMemcpy(VY_d, VY, sizeFloatVector, cudaMemcpyHostToDevice);
-    CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-
-    error = cudaMemcpy(VX_d, VX, sizeFloatVector, cudaMemcpyHostToDevice);
-    CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	error = cudaMemcpy(Y_d, Y, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	error = cudaMemcpy(VY_d, VY, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	error = cudaMemcpy(VX_d, VX, sizeFloatVector, cudaMemcpyHostToDevice); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
 
 	
     storeOldValues <<<dimGrid, dimBlock>>> (Xprev_d,X_d,Yprev_d,Y_d, N);
@@ -653,17 +713,10 @@ void Upd(parameter para_h)
     cudaThreadSynchronize();
 
     // neue Werte zurückkopieren
-    error = cudaMemcpy(Xprev, Xprev_d, sizeFloatVector, cudaMemcpyDeviceToHost);
-    CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-
-    error = cudaMemcpy(Yprev, Yprev_d, sizeFloatVector, cudaMemcpyDeviceToHost);
-    CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-
-    error = cudaMemcpy(X, X_d, sizeFloatVector, cudaMemcpyDeviceToHost);
-    CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-
-    error = cudaMemcpy(Y, Y_d, sizeFloatVector, cudaMemcpyDeviceToHost);
-    CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+    error = cudaMemcpy(Xprev, Xprev_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+    error = cudaMemcpy(Yprev, Yprev_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+    error = cudaMemcpy(X, X_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+    error = cudaMemcpy(Y, Y_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
 
     for(i=0; i<N; i++) {
 
@@ -738,7 +791,18 @@ void Upd(parameter para_h)
 
     /* 4 */
 
-    /* 4.1 */
+    /* 4.1 */ 
+	
+	// benötigte Werte vom Device zurück
+	
+	error = cudaMemcpy(VX, VX_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	error = cudaMemcpy(VY, VY_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	
+	error = cudaMemcpy(vxnew, vxnew_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	error = cudaMemcpy(vynew, vynew_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+	error = cudaMemcpy(Phi, Phi_d, sizeFloatVector, cudaMemcpyDeviceToHost); CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+    
+	
     E[UpdNum+1] = 0.0;
     for(i=0; i<N; i++) {
         E[UpdNum+1] += VX[i] * cos(Phi[i]) + VY[i] * sin(Phi[i]);
@@ -750,18 +814,25 @@ void Upd(parameter para_h)
 
     /* 4.2 */
     for(i=0; i<N; i++) {
-        VX[i] = vxnew[i];
+		// if (i == 1) {
+			// printf (" \n");
+			// printf ("Store: neue Geschwindigkeit: %f, %f \n",vxnew[i], vynew[i] );
+			// printf ("Store: alte Geschwindigkeit: %f, %f \n",VX[i], VY[i] );
+		// }
+		VX[i] = vxnew[i];
         VY[i] = vynew[i];
         V[i] = sqrt(SQR(VX[i])+SQR(VY[i]));
         Vdir[i] = atan2(VY[i],VX[i]);
         Phi[i] = DirectionOfExit( i );
+
     }
 
 
     /* 4.3 */
     SimTime[UpdNum+1] = SimTime[UpdNum] + tstep;
     UpdNum++;
-
+	// printf("SimTime[UpdNum] %f \n", SimTime[UpdNum]);
+	
 
     /*
     if(NInjured>0){

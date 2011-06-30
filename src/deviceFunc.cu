@@ -359,10 +359,18 @@ __device__ void WPointTangForce_FS1(int iwp, int i, float r, float *fx, float *f
     *fy = -Kappa * (0.5*diameter-r) * ( - rx * scal_prod_over_rsqr );
 }
 
+__device__ float EulTStep(float tmpTimeStep, float f, float V_ChangeLimit, float C_NS ) {
+    /* adjusts the time step in a way that the force (fx,fy) doesn't change the velocity of particle i by more than V_ChangeLimit */
+
+    while( f*(tmpTimeStep) >= V_ChangeLimit ) {
+        tmpTimeStep *= C_NS;
+    }
+	
+	return tmpTimeStep;
+}
+
+
 __device__ float DirectionOfExit(float xCoor, float yCoor, float diameter, float YS, parameter *para, wall *W) {
-
-
-			
 	float DoorWidth = para-> DoorWidth;
 	float RoomXSize = para -> RoomXSize;
 	float EPSILON = 1.0e-5;

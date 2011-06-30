@@ -214,7 +214,7 @@ __global__ void calcColumnForces (float *fcolx, float *fcoly, float *ftmagsum,fl
 	}
 }
 
-__global__ void calcInjuryForces (float *fsmokex, float *fsmokey, float *VX, float *VY, float *V0of, int *Injured, float *ftmagsum, int N, int UpdNum, float *SimTime, float *Phi, float *X, float *D, parameter *para){
+__global__ void calcInjuryForces (float *fsmokex, float *fsmokey, float *VX, float *VY, float *V0of, int *Injured, float *ftmagsum, int N, float SimTime, float *Phi, float *X, float *D, parameter *para){
 
 	// lokale Variablen
 	float x_smokefront, tmpf,tmpr;
@@ -233,7 +233,8 @@ __global__ void calcInjuryForces (float *fsmokex, float *fsmokey, float *VX, flo
 	
 	
 	if (i <= N) {
-	
+
+		
 		switch(InjurySwitch) {
 		case 0: {
 				break;
@@ -253,22 +254,23 @@ __global__ void calcInjuryForces (float *fsmokex, float *fsmokey, float *VX, flo
 			}
 		case 2:
 		case 3: {
-
+				
 				/* case: smoke front */
-				if(SimTime[UpdNum]>=SmokeStartTime) {
-					x_smokefront = (SimTime[UpdNum]-SmokeStartTime)*VSmoke;
+
+				if(SimTime>=SmokeStartTime) {
+					x_smokefront = (SimTime-SmokeStartTime)*VSmoke;
 
 					
 					/* checking position compared to smoke front */
 					tmpr = X[i] - x_smokefront;
-
+					
 					/* center of particle behind smoke front: injured */
 					
-					printf("Index: %d verletzt: %d \n", i, Injured[i]);
+					
 					if( tmpr < 0.5*D[i] ) {
 						if(Injured[i]==0) {
+							// printf("tmpr: %f, x_smokefront: %f \n", tmpr, x_smokefront);
 							Injured[i] = 1;
-							
 							V0of[i] = 0.0;
 							VX[i] = VY[i] = 0.0;
 						}
@@ -286,6 +288,120 @@ __global__ void calcInjuryForces (float *fsmokex, float *fsmokey, float *VX, flo
 			}
 		}
 	}
+}
+
+__global__ void sumForces (float *fsumx,float *fsumy,  float *tStepVector, const float sqrt_fact, const float *VX,const float *VY,const float *V0of,const float *Phi,const float *fpairx,const float *fwallx,const float *fwpointx,const float *fpairy,const float *fwally,const float *fwpointy,const float *fsmokex,const float *fsmokey,const float *fcolx,const float *fcoly, const int N, const parameter *para) {
+
+// sqrt_fact = sqrt(tstep/DefaultDeltaT);
+	
+	
+	int b_ID = blockIdx.x; 		   
+	int i =  b_ID * blockDim.x + threadIdx.x;
+		
+	float Tau = para-> Tau;	
+	float DefaultDeltaT = para -> DefaultDeltaT;
+	float V_ChangeLimit = para -> V_ChangeLimit;
+	float C_NS = para -> C_NS; 
+	int InjurySwitch = para -> InjurySwitch;
+	int ColumnSwitch = para -> ColumnSwitch;
+	
+	float fspx, fspy, ksi, eta; 
+	
+	
+	if (i <= N) {
+
+        /* self-propelling */
+        fspx = 1/Tau * (V0of[i]*cos(Phi[i]) - VX[i]);
+        fspy = 1/Tau * (V0of[i]*sin(Phi[i]) - VY[i]);
+
+        // noise; die Verwendung habe ich erstmal rausgelassen, siehe erklärung in AnalyseSumForces
+        // if(GaTh!=0.0) {
+            // ksi = GaussRand(GaMe, GaTh, GaCM);
+            // eta = 2.0*PI * rand() / (RAND_MAX+1.0);
+        // } else {
+            // ksi=0.0;
+            // eta=0.0;
+        // }
+		
+		ksi = 0.0;
+		eta = 0.0;
+
+
+        /* sum of forces */
+        fsumx[i] =   fspx + fpairx[i] + fwallx[i] + fwpointx[i] + sqrt_fact * ksi * cos(eta);
+        fsumy[i] =   fspy + fpairy[i] + fwally[i] + fwpointy[i] + sqrt_fact * ksi * sin(eta);
+		
+		// if (i == 1) {
+			// printf ("Kraft in Summe Forces: %f, %f \n",fsumx[i], fsumy[i] );
+		// }
+
+        /* adding smoke force */
+        if((InjurySwitch==2)||(InjurySwitch==3)) {
+            fsumx[i] += fsmokex[i];
+            fsumy[i] += fsmokey[i];
+        }
+        /* adding force of column */
+        switch(ColumnSwitch) {
+        default:
+        case 0: {
+                break;
+            }
+        case 1: {
+                fsumx[i] += fcolx[i];
+                fsumy[i] += fcoly[i];
+                break;
+            }
+        }
+		// tStepVector[i] = EulTStep(DefaultDeltaT, sqrt(SQR(fsumx[i])+SQR(fsumy[i])), V_ChangeLimit, C_NS );	
+		
+		// tStepVector[i] = DefaultDeltaT;
+		// float f = sqrt(SQR(fsumx[i])+SQR(fsumy[i]));
+		// while ( f*(tStepVector[i]) >= V_ChangeLimit ) {
+			// tStepVector[i] *= C_NS;
+			// if (i == 1) {
+				// printf ("curent tStep: %f \n", tStepVector[i]);
+			// }
+		// }
+		
+		tStepVector[i] = 0.001;	
+
+	}
+}
+
+__global__ void NewVelocity (float *vxnew, float *vynew, const float *fsumx, const float *fsumy, const float *VX, const float *VY, const int *Injured, const int N, const float *tStepVector, parameter *para) {
+
+   /* new velocity */
+	
+	int b_ID = blockIdx.x; 		   
+	int i =  b_ID * blockDim.x + threadIdx.x;
+   
+   
+	float vnew;
+	float Vmax = para-> Vmax;
+	int InjurySwitch = para -> InjurySwitch;
+	
+	if (i <= N) {
+		if(  (Injured[i]==1) &&((InjurySwitch==1)||(InjurySwitch==3))) {
+            vxnew[i] = 0.0;
+            vynew[i] = 0.0;
+        } else {
+            vxnew[i] = VX[i] + fsumx[i] * tStepVector[i];
+            vynew[i] = VY[i] + fsumy[i] * tStepVector[i];
+        }
+
+        /* checking new velocity */
+        vnew = sqrt( SQR(vxnew[i]) + SQR(vynew[i]) );
+        if(vnew > Vmax) {
+            vxnew[i] = vxnew[i]/vnew * Vmax;
+            vynew[i] = vynew[i]/vnew * Vmax;
+        }
+		
+		// if (i == 1) {
+			// printf ("Berechnung: alte Geschwindigkeit: %f, %f \n",VX[i], VY[i] );
+			// printf ("Berechnung: Kraft: %f, %f \n",fsumx[i], fsumy[i] );
+			// printf ("Berechnung: neue Geschwindigkeit: %f, %f \n",vxnew[i], vynew[i] );
+		// }
+    }
 }
 
 __global__ void storeOldValues (float* Xprev_d,float* X_d, float* Yprev_d, float*Y_d, int N)
@@ -311,6 +427,22 @@ __global__ void calcNewValues (float* X_d,float* Y_d,float* VY_d,float* VX_d, fl
         Y_d[i] += VY_d[i] * tstep;
     }
 }
+
+__global__ void getMinTimeStep (const float *tStepVector, const int countElements, float *min) {
+	float erg = 10.0;
+	int i;
+	
+	
+	for (i = 0; i < countElements; i++) {
+	
+		if (tStepVector[i] < erg) {
+			erg = tStepVector[i];
+		}
+	}
+	
+	*min = erg;
+}
+
 
 __global__ void sumUp (const int *summanden, const int countElements, int* sum) {
 	float summe = 0;
