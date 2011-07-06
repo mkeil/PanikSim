@@ -8,9 +8,6 @@ include_directories(${CUDA_INCLUDE_DIRS})
 find_package(GLog REQUIRED)
 include_directories(${GLOG_INCLUDE_DIR})
 
-find_package(GTest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIR})
-
 find_package(X11 REQUIRED)
 include_directories(${X11_INCLUDE_DIR})
 
@@ -19,10 +16,9 @@ include_directories("src")
 
 set (CUDA_NVCC_FLAGS "-arch=sm_20")
 	
-cuda_add_executable(PanicSim src/sd.cu src/prepareParameter.cu) 
+cuda_add_executable(PanicSim src/PanicSimMain.cu src/hostFunc.cu src/kernels.cu src/Xlib_mod.cu) 
 target_link_libraries(PanicSim ${X11_LIBRARIES})
 target_link_libraries(PanicSim ${GLOG_LIBRARY})
-target_link_libraries(PanicSim ${GTEST_LIBRARIES})
 
 
 

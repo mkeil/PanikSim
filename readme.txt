@@ -1,3 +1,6 @@
-Das ist der aktuelle Arbeitsordner.
+Hier befindet sich die neue Version, in der das neue Design der Updatefunktion eingefügt wird
 
-bei Aufruf von CMake darauf achten, dass externe Bibliotheken erreichabr sind (X11, CUDA, GTest, GLog)
+NG = New Generation ;-)
+
+Hinweise 
+	die Datei panic.par enthält alle wichtigen Parameter für die Simulation. Die Datei muß im selben Verzeichnis sein, wie das ausführbare Programm

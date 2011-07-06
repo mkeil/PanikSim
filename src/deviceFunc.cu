@@ -1,13 +1,53 @@
 #include "deviceFunc.h"
 #include "base.c"
 
+#include <stdio.h>
+
+__device__ void PP_TangForce_FS1(int i1, int i2, float r, float *fx, float *fy, float *D, float *X, float *Y,float *VX, float *VY, parameter *para)
+{
+    /* exerted by particle i2 on particle i1 */
+    float Kappa = para -> Kappa;
+    float rx,ry,vx,vy,scal_prod_over_rsqr;
+
+    rx = X[i1]-X[i2];
+    ry = Y[i1]-Y[i2];
+    vx = VX[i1]-VX[i2];
+    vy = VY[i1]-VY[i2];
+    scal_prod_over_rsqr = (ry*vx - rx*vy) / SQR(r);
+    *fx = -Kappa * (0.5*(D[i1]+D[i2])-r) * (   ry * scal_prod_over_rsqr );
+    *fy = -Kappa * (0.5*(D[i1]+D[i2])-r) * ( - rx * scal_prod_over_rsqr );
+}
+
+__device__ void PP_PsychForce(int i1, int i2, float r, float *fx, float *fy, float *D, float *X, float *Y, parameter *para)
+{
+
+    float A = para -> A;
+    float B = para -> B;
+
+    float f_over_r;
+
+    f_over_r = A*exp(-(r-0.5*(D[i1]+D[i2]))/B) / r;
+    *fx = (X[i1]-X[i2]) * f_over_r;
+    *fy = (Y[i1]-Y[i2]) * f_over_r;
+}
+
+__device__ void PP_YoungForce(int i1, int i2, float r, float *fx, float *fy, float *D, float *X, float *Y, parameter *para)
+{
+    float C_Young = para -> C_Young;
+    float f_over_r;
+
+    f_over_r = 2.0*C_Young*(0.5*(D[i1]+D[i2])-r) / r;
+    *fx = (X[i1]-X[i2]) * f_over_r;
+    *fy = (Y[i1]-Y[i2]) * f_over_r;
+}
+
 
 __device__ void WallParticleRelation(int iw, int i, float *r, int *can_see, float yCoor, float xCoor, wpoint *WP, parameter *para)
 {
     // can_see: whether partice i is within the range of wall iw;  r: distance
-	
-	float RoomYSize = para-> RoomYSize;
-	float R = para -> R;
+
+    float RoomYSize = para-> RoomYSize;
+    float R = para -> R;
 
     switch(iw) {
     case 0: {
@@ -130,7 +170,7 @@ __device__ void WallParticleRelation(int iw, int i, float *r, int *can_see, floa
 
 __device__ void WallTangForce_FS1( int iw, int i, float r, float *fx, float *fy, float diameter, float VelocityX_Dir, float VelocityY_Dir, parameter *para )
 {
-float Kappa = para-> Kappa;
+    float Kappa = para-> Kappa;
 #define tmp_delta_r (0.5*diameter-r)
 
     /* friction forces */
@@ -159,8 +199,8 @@ float Kappa = para-> Kappa;
 
 __device__ void WallPsychForce(int iw, int i, float r, float *fx, float *fy, float diameter, parameter *para)
 {
-	float A = para-> A;
-	float B = para -> B;
+    float A = para-> A;
+    float B = para -> B;
 #define tmp_f (A*exp(-(r-0.5*diameter)/B))
 
     switch(iw) {
@@ -217,7 +257,7 @@ __device__ void WallPsychForce(int iw, int i, float r, float *fx, float *fy, flo
 __device__ void WallYoungForce(int iw, int i, float r, float *fx, float *fy, float diameter, parameter *para)
 {
 
-float C_Young = para-> C_Young;
+    float C_Young = para-> C_Young;
 #define tmp_f (2.0*C_Young*(0.5*diameter-r))
 
     switch(iw) {
@@ -275,7 +315,7 @@ __device__ void WPointYoungForce(int iwp, int i, float r, float *fx, float *fy, 
 
 {
     /* exerted by wpoint iwp on particle i */
-	float C_Young = para-> C_Young;
+    float C_Young = para-> C_Young;
     float rx,ry;
 
 #define tmp_f_over_r ( 2.0*C_Young*(0.5*diameter-r) / r)
@@ -292,8 +332,8 @@ __device__ void WPointPsychForce(int iwp, int i, float r, float *fx, float *fy, 
 
 {
     /* exerted by wpoint iwp on particle i */
-	float A = para-> A;
-	float B = para-> B;
+    float A = para-> A;
+    float B = para-> B;
 #define tmp_f_over_r (A*exp(-(r-0.5*diameter)/B)/r)
 
     *fx = (xCoor-WP.x) * tmp_f_over_r;
@@ -306,7 +346,7 @@ __device__ void WPointPsychForce(int iwp, int i, float r, float *fx, float *fy, 
 __device__ void WPointParticleRelation(int iwp, int i, float *r, int *can_see, float yCoor, float xCoor, wpoint *WP)
 {
     /* can_see: whether partice i is within the range of wpoint iwp r: distance */
-	
+
     *r = sqrt(SQR(WP[iwp].x-xCoor)+SQR(WP[iwp].y-yCoor));
 
     switch(iwp) {
@@ -348,8 +388,8 @@ __device__ void WPointParticleRelation(int iwp, int i, float *r, int *can_see, f
 __device__ void WPointTangForce_FS1(int iwp, int i, float r, float *fx, float *fy, float xCoor, float yCoor, float diameter, float VelocityX_Dir, float VelocityY_Dir, wpoint WP, parameter *para )
 
 {
-	/* exerted by wpoint iwp on particle i */
-	float Kappa = para-> Kappa;
+    /* exerted by wpoint iwp on particle i */
+    float Kappa = para-> Kappa;
     float rx,ry,scal_prod_over_rsqr;
 
     rx = xCoor-WP.x;
@@ -359,23 +399,25 @@ __device__ void WPointTangForce_FS1(int iwp, int i, float r, float *fx, float *f
     *fy = -Kappa * (0.5*diameter-r) * ( - rx * scal_prod_over_rsqr );
 }
 
-__device__ float EulTStep(float tmpTimeStep, float f, float V_ChangeLimit, float C_NS ) {
+__device__ float EulTStep(float tmpTimeStep, float f, float V_ChangeLimit, float C_NS )
+{
     /* adjusts the time step in a way that the force (fx,fy) doesn't change the velocity of particle i by more than V_ChangeLimit */
 
     while( f*(tmpTimeStep) >= V_ChangeLimit ) {
         tmpTimeStep *= C_NS;
     }
-	
-	return tmpTimeStep;
+
+    return tmpTimeStep;
 }
 
 
-__device__ float DirectionOfExit(float xCoor, float yCoor, float diameter, float YS, parameter *para, wall *W) {
-	float DoorWidth = para-> DoorWidth;
-	float RoomXSize = para -> RoomXSize;
-	float EPSILON = 1.0e-5;
+__device__ float DirectionOfExit(float xCoor, float yCoor, float diameter, float YS, parameter *para, wall *W)
+{
+    float DoorWidth = para-> DoorWidth;
+    float RoomXSize = para -> RoomXSize;
+    float EPSILON = 1.0e-5;
 
-
+    // printf ("Dir of Exit: x: %f, y: %f, d: %f, YS: %f \n", xCoor, yCoor, diameter, YS);
     /* direction of exit for particle i */
 
     float dsqr, /* sqr of particle center - door-post distance */

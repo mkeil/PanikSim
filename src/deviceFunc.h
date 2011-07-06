@@ -1,3 +1,10 @@
+#pragma once
+#include "types.h"
+__device__ void PP_TangForce_FS1(int i1, int i2, float r, float *fx, float *fy, float *D, float *X, float *Y,float *VX, float *VY, parameter *para);
+
+__device__ void PP_PsychForce(int i1, int i2, float r, float *fx, float *fy, float *D, float *X, float *Y, parameter *para);
+
+__device__ void PP_YoungForce(int i1, int i2, float r, float *fx, float *fy, float *D, float *X, float *Y, parameter *para);
 
 __device__ void WallParticleRelation(int iw, int i, float *r, int *can_see, float yCoor, float xCoor, wpoint *WP, parameter *para); 
 
