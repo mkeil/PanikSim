@@ -25,7 +25,7 @@ PARAMETERS
 # i 0 N0	5000	initial number of particles
 
 # f 0 RoomXSize	210.0
-# f 0 RoomYSize	180.0
+# f 0 RoomYSize	140.0
 # f 0 DoorWidth	3.2
 # f 0 WallWidth	1.0
 
@@ -114,7 +114,7 @@ constants for the 'psychological' potential
 # s 0 InfoColorName	 	Wheat
 
 
-# f 0 X11_Magn	2.0	picture magnification
+# f 0 X11_Magn	4.0	picture magnification
 # i 0 X11_Margin 20 	margin (in pixels)	
 # i 0 X11_InFW	250	info field width
 # i 0 X11_InFH	250	info field height
