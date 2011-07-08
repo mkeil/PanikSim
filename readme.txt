@@ -49,6 +49,7 @@ Inhalt des Verzeichnisses: ****
 \src\hostFunc.cu	- enthält die nötigen Funktionen für den Host
 \src\hostFunc.h
 \src\kernels.cu		- enthält alle Kernels
+\src\kernels_constant_stepsize.cu		- enthält alle Kernels, hier wird die feste StepSize verwendet
 \src\kernels.h
 \src\PanicSimMain.cu	- das Hauptprogramm
 \src\types.h		
