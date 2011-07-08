@@ -24,8 +24,8 @@ PARAMETERS
 
 # i 0 N0	2000	initial number of particles
 
-# f 0 RoomXSize	150.0
-# f 0 RoomYSize	100.0
+# f 0 RoomXSize	110.0
+# f 0 RoomYSize	80.0
 # f 0 DoorWidth	3.2
 # f 0 WallWidth	1.0
 
@@ -95,14 +95,14 @@ constants for the 'psychological' potential
 	MORE
 	----
 
-# i 0 ColumnSwitch	0	0=no column
+# i 0 ColumnSwitch	1	0=no column
 				1=cylindrical column with center at 
 				(ColumnCenterX,ColumnCenterY) and
 				diameter ColumnD
 
-# f 0 ColumnCenterX	5.0
-# f 0 ColumnCenterY	5.0
-# f 0 ColumnD		2.0
+# f 0 ColumnCenterX	105.0
+# f 0 ColumnCenterY	40.0
+# f 0 ColumnD		3.0
 
 
 
@@ -114,7 +114,7 @@ constants for the 'psychological' potential
 # s 0 InfoColorName	 	Wheat
 
 
-# f 0 X11_Magn	5.0	picture magnification
+# f 0 X11_Magn	6.0	picture magnification
 # i 0 X11_Margin 20 	margin (in pixels)	
 # i 0 X11_InFW	250	info field width
 # i 0 X11_InFH	250	info field height
@@ -166,7 +166,7 @@ constants for the 'psychological' potential
 	stored in memory at one time 
 	(should be <= MaxUpdNum, of course)
 
-# f 0 MaxSimTime 10000.0 	max. simulation time (not CPU time)
+# f 0 MaxSimTime 15000.0 	max. simulation time (not CPU time)
 # f 1 Vmax	20.0	maximal velocity (allowed in numerical method)
 # f 0 H		1.1	
 

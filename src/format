@@ -1,2 +1,0 @@
-# aufruf ./format
-astyle --options=formatStyle.txt "*.c*"

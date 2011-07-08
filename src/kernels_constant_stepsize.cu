@@ -196,18 +196,10 @@ __global__ void calcWallForces (float *fwallx, float *fwally, float *ftmagsum, f
                     ftmagsum[i] += sqrt(SQR(tmp_fyox)+SQR(tmp_fyoy));
                 }
 
-                // measuring x component of touching force exerted on walls left and right from exit
-                /* lasse ich erstmal weg
-                if((iw==1)||(iw==7)) {
-                    FW_x -= tmp_fyox + tmp_ftax;
-                }
-                */
+       
             }
         }
     }
-    // if (i == 1) {
-    // printf ("fwallx: &f", fwallx[1]);
-    // }
 
 }
 
@@ -258,12 +250,6 @@ __global__ void calcWPointForces (float *fwpointx, float *fwpointy, float *ftmag
                     ftmagsum[i] += sqrt(SQR(tmp_fyox)+SQR(tmp_fyoy));
                 }
 
-                // measuring x component of touching force exerted on walls left and right from exit
-                // erstmal rausgenommen
-                //
-                // if((iwp==0)||(iwp==3)) {
-                //    FW_x -= tmp_fyox + tmp_ftax;
-                // }
 
             }
         }
@@ -396,7 +382,6 @@ __global__ void calcInjuryForces (float *fsmokex, float *fsmokey, float *VX, flo
                 // frisch verletzt
                 if((ftmagsum[i]>FCrush_over_1m*PI*D[i])&&(Injured[i]==0)) {
                     Injured[i] = 1;
-                    // NInjured++; wird anschließend neu berechnet
                     V0of[i] = 0.0;
                 }
 
@@ -416,10 +401,9 @@ __global__ void calcInjuryForces (float *fsmokex, float *fsmokey, float *VX, flo
 
                     /* center of particle behind smoke front: injured */
 
-
                     if( tmpr < 0.5*D[i] ) {
                         if(Injured[i]==0) {
-                            // printf("tmpr: %f, x_smokefront: %f \n", tmpr, x_smokefront);
+        
                             Injured[i] = 1;
                             V0of[i] = 0.0;
                             VX[i] = VY[i] = 0.0;
@@ -447,9 +431,6 @@ __global__ void sumForces (float *fsumx,float *fsumy,  float *tStepVector, const
     int i =  b_ID * blockDim.x + threadIdx.x;
 
     float Tau = para-> Tau;
-    float DefaultDeltaT = para -> DefaultDeltaT;
-    float V_ChangeLimit = para -> V_ChangeLimit;
-    float C_NS = para -> C_NS;
     int InjurySwitch = para -> InjurySwitch;
     int ColumnSwitch = para -> ColumnSwitch;
 
@@ -463,16 +444,6 @@ __global__ void sumForces (float *fsumx,float *fsumy,  float *tStepVector, const
         fspy = 1/Tau * (V0of[i]*sin(Phi[i]) - VY[i]);
 
 
-
-        // noise; die Verwendung habe ich erstmal rausgelassen, siehe erklärung in AnalyseSumForces
-        // if(GaTh!=0.0) {
-        // ksi = GaussRand(GaMe, GaTh, GaCM);
-        // eta = 2.0*PI * rand() / (RAND_MAX+1.0);
-        // } else {
-        // ksi=0.0;
-        // eta=0.0;
-        // }
-
         ksi = 0.0;
         eta = 0.0;
 
@@ -481,9 +452,7 @@ __global__ void sumForces (float *fsumx,float *fsumy,  float *tStepVector, const
         fsumx[i] =   fspx + fpairx[i] + fwallx[i] + fwpointx[i] + sqrt_fact * ksi * cos(eta);
         fsumy[i] =   fspy + fpairy[i] + fwally[i] + fwpointy[i] + sqrt_fact * ksi * sin(eta);
 
-        // if (i == 1) {
-        // printf ("Kraft in Summe Forces: %f, %f \n",fsumx[i], fsumy[i] );
-        // }
+
 
         /* adding smoke force */
         if((InjurySwitch==2)||(InjurySwitch==3)) {
@@ -503,25 +472,7 @@ __global__ void sumForces (float *fsumx,float *fsumy,  float *tStepVector, const
             }
         }
 
-        tStepVector[i] = EulTStep(DefaultDeltaT, sqrt(SQR(fsumx[i])+SQR(fsumy[i])), V_ChangeLimit, C_NS );
-
-        // tStepVector[i] = 0.001;
-
-        // tStepVector[i] = DefaultDeltaT;
-        // float f = sqrt(SQR(fsumx[i])+SQR(fsumy[i]));
-        // while ( f*(tStepVector[i]) >= V_ChangeLimit ) {
-        // tStepVector[i] *= C_NS;
-
-        // }
-
-
-        // if ((i == 0) && (fsumx[0] < 0)) {
-        //
-
-        // }
-        // printf ("fsumx: %f, fspx: %f, fpairx: %f, fwallx: %f, fwpointx: %f \n",fsumx[i], fspx, fpairx[i], fwallx[i], fwpointx[i] );
-        // printf ("VX: %f, VY: %f \n", VX[0], VY[0]) ;
-        // printf ("Phi[i]: %f \n ", Phi[i]);
+        tStepVector[i] = 0.001;
 
     }
 }
@@ -558,11 +509,6 @@ __global__ void NewVelocity (float *vxnew, float *vynew, const float *fsumx, con
 
 
     }
-    // if (i == 0) {
-    // printf ("Berechnung: alte Geschwindigkeit: %f, %f \n",VX[0], VY[0] );
-    // printf ("Berechnung: Kraft: %f, %f \n",fsumx[0], fsumy[0] );
-    // printf ("Berechnung: neue Geschwindigkeit: %f, %f \n",vxnew[0], vynew[0] );
-    // }
 }
 
 __global__ void getNewValues (float* Xprev_d,float* X_d, float* Yprev_d, float *Y_d,float *VY_d, float* VX_d, int *NinRoomVektor_d, float tstep, int N, parameter *para)
@@ -588,9 +534,7 @@ __global__ void getNewValues (float* Xprev_d,float* X_d, float* Yprev_d, float *
             NinRoomVektor_d[i] = 0;
 
         }
-        // if (i == 0) {
-        // printf ("X_d : %f, Y_d: %f, VX: %f, VY: %f \n", X_d[i], Y_d[i], VX_d[i], VY_d[i]);
-        // }
+ 
 
     }
 }
@@ -620,7 +564,7 @@ __global__ void sumUp (const int *summanden, const int countElements, int* sum)
         summe = summe + summanden[i];
     }
     *sum = summe;
-    // printf ("summe :%f \n", summe);
+
 }
 
 __global__ void storeNewVelocity (float *VX, float *VY, float *V, float *Vdir,  float *Phi, const float *X, const float *Y, const float *D, wall *W,  const float *vxnew, const float *vynew, parameter *para, const int N, float YS)
@@ -628,9 +572,7 @@ __global__ void storeNewVelocity (float *VX, float *VY, float *V, float *Vdir,  
 
     int b_ID = blockIdx.x;
     int i =  b_ID * blockDim.x + threadIdx.x;
-    // if (i == 0) {
-    // printf ("Phi[i] old : %f \n", Phi[i]);
-    // }
+
 
     if (i < N) {
         VX[i] = vxnew[i];
@@ -639,9 +581,7 @@ __global__ void storeNewVelocity (float *VX, float *VY, float *V, float *Vdir,  
         Vdir[i] = atan2(VY[i],VX[i]);
         Phi[i] = DirectionOfExit(X[i], Y[i], D[i], YS, para, W);
     }
-    // if (i == 0) {
-    // printf ("Phi[i] new : %f \n", Phi[i]);
-    // }
+
 }
 
 __global__ void setV0 (float *V0of, float V0, int N)
